@@ -3,6 +3,9 @@
 #include <string.h>
 #include "structs.h"
 #include "funcoes.h"
+#define LN_SIMPLES "+-------------------------------------------------------------+\n"
+#define LN_DUPLA   "+=============================================================+\n"
+#define LN_W        60   
 
 void limpa_buff();
 
@@ -178,15 +181,7 @@ int main()
             break;
 
         case 9: //step
-                // backup para backstep
-                if (estado.topo_pilha < 2000) {
-                    estado.pilha_back[estado.topo_pilha].pc       = estado.pc;
-                    estado.pilha_back[estado.topo_pilha].banco_reg = banco;
-                    estado.pilha_back[estado.topo_pilha].mem_dados = mem_dados;
-                    estado.topo_pilha++;
-                } else {
-                    printf("limite do backstep atingido\n");
-                }
+                push_estagio(&estado); //salva o estado atual antes de executar a instrucao, para o backstep
 
                 int pc_antes = estado.pc;
 
@@ -245,22 +240,15 @@ int main()
                 break;
                 
         case 10:
-            
             if (estado.topo_pilha > 0) {
-                //decrementa
-                estado.topo_pilha--; 
-
-                //restauracao
-                estado.pc = estado.pilha_back[estado.topo_pilha].pc;
-                banco = estado.pilha_back[estado.topo_pilha].banco_reg;
-                mem_dados = estado.pilha_back[estado.topo_pilha].mem_dados;
-                
+                pop_estagio(&estado);
                 printf("back: restaurado para PC=%d\n", estado.pc);
                 imprime_registradores(&banco);
             } else {
                 printf("nao tem instrucao anterior para voltar\n");
             }           
             break;
+
 
         
         case 11:
@@ -273,12 +261,19 @@ int main()
    
             break;
         case 12:
-            printf("Estatisticas: \n");
-            printf("Total de instrucoes: %d\n", estado.total_instrucoes);
-            printf("R: %i\n", estado.r_instrucoes);
-            printf("I: %i\n", estado.i_instrucoes);
-            printf("J: %i\n", estado.j_instrucoes);
-            printf("Somas 0: %i\n", estado.nop_instrucoes);
+                printf("\n");
+                printf(LN_DUPLA);
+                printf("|  ESTATISTICAS%-*s |\n", LN_W - 14, "");
+                printf(LN_SIMPLES);
+                printf("|  Total de instrucoes completas: %-4d%-*s |\n", estado.total_instrucoes, LN_W - 37, "");
+                printf(LN_SIMPLES);
+                printf("|  Tipo R  (registrador): %-4d%-*s |\n", estado.r_instrucoes, LN_W - 29, "");
+                printf("|  Tipo I  (imediato):    %-4d%-*s |\n", estado.i_instrucoes, LN_W - 29, "");
+                printf("|  Tipo J  (salto):       %-4d%-*s |\n",estado.j_instrucoes, LN_W - 29, "");
+                printf(LN_SIMPLES);
+                printf("|  NOPs (add $r0,$r0,$r0):%-4d%-*s |\n",estado.nop_instrucoes, LN_W - 29, "");
+                printf(LN_DUPLA);
+                imprime_menu(estado, num_instrucoes);
             break;
         case 0:
             estado.pc = 0;
@@ -291,6 +286,10 @@ int main()
             estado.i_instrucoes = 0;
             estado.j_instrucoes = 0;
             estado.nop_instrucoes = 0;
+            free(estado.pilha_back);
+            estado.capacidade_pilha = 100;
+            estado.pilha_back = (print *)malloc(estado.capacidade_pilha * sizeof(print));
+            
             printf("foi resetado :) .\n");
             break;
 

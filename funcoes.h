@@ -25,4 +25,7 @@
     int8_t mem_data(typ_mdd *mem, unsigned int endereco, int8_t D, bool str, bool ld, bool clear);//passando o ponteiro p mem dataz
     int executar(typ_stt *status, typ_reg reg, bool clear_data);
 
+    //pilha
+    void push_estagio(typ_stt *state);
+    void pop_estagio(typ_stt *state);
 #endif

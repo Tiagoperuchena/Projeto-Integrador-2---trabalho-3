@@ -56,13 +56,56 @@
         bool overflow;
     }typ_ulaR;
 
-        typedef struct 
-    {
+    typedef struct {
         int pc;
         typ_reg banco_reg;
         typ_mdd mem_dados;
-    }print; //print do estado p poder fazer backstep
+        typ_if_id IF_ID;
+        typ_id_ex ID_EX;
+        typ_ex_mem EX_MEM;
+        typ_mem_wb MEM_WB;
+    }print;
     
+    typedef struct {
+        uint8_t pc;
+        typ_ins instrucao;
+    } typ_if_id;
+
+    typedef struct {
+        bool sinal[8];
+        typ_ulaOp ulaop;
+
+        uint8_t pc;
+        int8_t valor_a;
+        int8_t valor_b;
+        int16_t imediato;
+        uint8_t rt;
+        uint8_t rd;
+        uint16_t addr;
+    } typ_id_ex;
+    
+    typedef struct {
+        bool sinal[8];
+
+        uint8_t pc;
+        uint8_t pc_branch;
+        bool zero;
+        int8_t resultado_ula;
+        int8_t valor_b;
+        uint8_t reg_destino;
+    } typ_ex_mem;
+
+    typedef struct {
+        bool sinal[8];
+
+        uint8_t pc;
+        int8_t saida_mem;
+        int8_t resultado_ula;
+        uint8_t reg_destino;
+    } typ_mem_wb;
+
+
+     
 
     typedef struct str_state
     {
@@ -73,9 +116,10 @@
         unsigned char pc;
         int hist_topo;
 
-        print pilha_back[2000]; //backup 
+        print *pilha_back; //backup 
         int topo_pilha;
-        // stats instrucao mas ainda nao testei
+        int capacidade_pilha;
+       
         int total_instrucoes;
         int r_instrucoes;
         int i_instrucoes;
@@ -86,7 +130,14 @@
         typ_ulaOp ulaop;
         typ_ulaR ular;
         bool estouro;
+
+        // Registradores de pipeline
+        typ_if_id IF_ID;
+        typ_id_ex ID_EX;
+        typ_ex_mem EX_MEM;
+        typ_mem_wb MEM_WB;
     }typ_stt;
+
     enum
     {
         esc_mem = 0, 
