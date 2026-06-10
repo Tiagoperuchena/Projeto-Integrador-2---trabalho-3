@@ -82,6 +82,7 @@
         int16_t imediato;
         uint8_t rt;
         uint8_t rd;
+         uint8_t reg_destino;
         uint16_t addr;
         bool valido;
         typ_ins instrucao;
