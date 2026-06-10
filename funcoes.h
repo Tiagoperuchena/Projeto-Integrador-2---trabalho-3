@@ -8,6 +8,12 @@
    
     // ULA
     typ_ulaR ula(int A, int B, typ_ulaOp operacao);
+
+    void estagio_IF(typ_stt *estado);
+    void estagio_ID(typ_stt *estado);
+    void estagio_EX(typ_stt *estado);
+    void estagio_MEM(typ_stt *estado);
+    void estagio_WB(typ_stt *estado);
     
     // controlador
     typ_stt *controlador(typ_stt *state, int n);

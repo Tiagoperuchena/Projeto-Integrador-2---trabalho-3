@@ -69,6 +69,7 @@
     typedef struct {
         uint8_t pc;
         typ_ins instrucao;
+        bool valido;
     } typ_if_id;
 
     typedef struct {
@@ -82,6 +83,8 @@
         uint8_t rt;
         uint8_t rd;
         uint16_t addr;
+        bool valido;
+        typ_ins instrucao;
     } typ_id_ex;
     
     typedef struct {
@@ -93,6 +96,9 @@
         int8_t resultado_ula;
         int8_t valor_b;
         uint8_t reg_destino;
+        uint16_t addr;
+        bool valido;
+        typ_ins instrucao;
     } typ_ex_mem;
 
     typedef struct {
@@ -102,11 +108,12 @@
         int8_t saida_mem;
         int8_t resultado_ula;
         uint8_t reg_destino;
+        bool valido;
+        typ_ins instrucao;
     } typ_mem_wb;
 
 
-     
-
+    
     typedef struct str_state
     {
         typ_ins *instrucao_t;
@@ -121,6 +128,7 @@
         int capacidade_pilha;
        
         int total_instrucoes;
+        int total_ciclos;
         int r_instrucoes;
         int i_instrucoes;
         int j_instrucoes;
