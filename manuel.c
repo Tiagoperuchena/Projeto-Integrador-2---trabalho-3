@@ -18,11 +18,16 @@ void EX(typ_stt *stt)
 
     saida_ula = ula(stt->ID_EX.valor_a, mux, stt->ID_EX.ulaop);
 
+    if (stt->ID_EX.sinal[reg_des])
+        mux = stt->ID_EX.rd;
+    else
+        mux = stt->ID_EX.rt;
+
     //===========================================================
 
     stt->EX_MEM.pc            = stt->ID_EX.pc;
     stt->EX_MEM.pc_branch     = (stt->ID_EX.pc + stt->ID_EX.imediato);
-    stt->EX_MEM.reg_destino   = stt->ID_EX.reg_destino;
+    stt->EX_MEM.reg_destino   = mux;
     stt->EX_MEM.resultado_ula = saida_ula.resultado;
     stt->EX_MEM.sinal[0]      = stt->ID_EX.sinal[0];
     stt->EX_MEM.sinal[1]      = stt->ID_EX.sinal[1];
@@ -38,7 +43,97 @@ void EX(typ_stt *stt)
         
 }
 
-void *control()
+void control(typ_stt *stt)
 {
+    switch (stt->IF_ID.instrucao.tipo)
+    {
+    case r: // Tipo R 
+    stt->sinal[reg_des] = 1;
+    stt->ulaop = stt->IF_ID.instrucao.funct;
+    stt->sinal[ula_fon] = 0;
+
+    stt->sinal[esc_mem] = 0;
+    stt->sinal[branch]  = 0; // DVC  n sei pq mudou de nome
+    stt->sinal[jump]    = 0; // DVI  tbm n sei
     
+    stt->sinal[mem_reg] = 0;
+    stt->sinal[esc_reg] = 1;
+
+
+    stt->sinal[inc_pc]  = 1; 
+    break;
+
+    case i: // Tipo I
+        switch (stt->IF_ID.instrucao.opcode)
+        {
+        case beq:
+            stt->ulaop = SUB; 
+            stt->sinal[esc_mem] = 0;
+            stt->sinal[esc_reg] = 0;
+            stt->sinal[mem_reg] = 0;
+            stt->sinal[ula_fon] = 0;
+            stt->sinal[reg_des] = 0;
+            stt->sinal[inc_pc]  = 1;
+            stt->sinal[jump]    = 0;
+            stt->sinal[branch]  = 1;
+           
+        break;
+            
+
+        case addi:    
+            stt->ulaop = ADD;
+            stt->sinal[esc_mem] = 0;
+            stt->sinal[esc_reg] = 1;
+            stt->sinal[mem_reg] = 0;
+            stt->sinal[ula_fon] = 1;
+            stt->sinal[reg_des] = 0;
+            stt->sinal[inc_pc]  = 1;
+            stt->sinal[jump]    = 0;
+            stt->sinal[branch]  = 0;
+        break;    
+
+
+        case lw:
+            stt->ulaop = ADD;
+            stt->sinal[esc_mem] = 0;
+            stt->sinal[esc_reg] = 1;
+            stt->sinal[mem_reg] = 1;
+            stt->sinal[ula_fon] = 1;
+            stt->sinal[reg_des] = 0;
+            stt->sinal[inc_pc]  = 1;
+            stt->sinal[jump]    = 0;
+            stt->sinal[branch]  = 0;
+        break;
+
+
+        case sw:
+            stt->ulaop = ADD;
+            stt->sinal[esc_mem] = 1;
+            stt->sinal[esc_reg] = 0;
+            stt->sinal[mem_reg] = 0;
+            stt->sinal[ula_fon] = 1;
+            stt->sinal[reg_des] = 0;
+            stt->sinal[inc_pc]  = 1;
+            stt->sinal[jump]    = 0;
+            stt->sinal[branch]  = 0;
+        break;
+        
+        default:
+            break;
+        }
+    break;
+
+    case j:
+        stt->sinal[esc_mem] = 0;
+        stt->sinal[esc_reg] = 0;
+        stt->sinal[mem_reg] = 0;
+        stt->sinal[ula_fon] = 0;
+        stt->sinal[reg_des] = 0;
+        stt->sinal[inc_pc]  = 1;
+        stt->sinal[jump]    = 1;
+        stt->sinal[branch]  = 0;
+    
+    default:
+        break;
+    }
 }
