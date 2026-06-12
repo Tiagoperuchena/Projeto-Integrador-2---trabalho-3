@@ -1,10 +1,9 @@
 #include"structs.h"
-
 #ifndef funcoes_H
 #define funcoes_H  
 
     // leitura de comandos bit a bit
-    int carregar_memoria_instrucoes(typ_instrucaoSep **mem_out);
+    int carregar_memoria_instrucoes(const char *nome_arquivo, typ_instrucaoSep **mem_out);
    
     // ULA
     typ_ulaR ula(int A, int B, typ_ulaOp operacao);
@@ -16,7 +15,7 @@
     void estagio_WB(typ_stt *estado);
     
     // controlador
-    typ_stt *controlador(typ_stt *state, int n);
+    typ_stt *control(typ_stt *state, int n);
    
     void asm_gerador(typ_ins *ins, int n,char *nome_arq);
     int asm_gerador_char(char *asembly, typ_ins *instrucao);

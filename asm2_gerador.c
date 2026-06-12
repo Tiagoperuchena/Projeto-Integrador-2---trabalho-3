@@ -6,7 +6,7 @@
 
 int asm_gerador_char(char *asembly, typ_ins *instrucao)
 {
-
+        asembly[0] = '\0';
 		if (instrucao->instrucao_bruta == 0) {
 			sprintf(asembly, "add $r0, $r0, $r0\n");
 			return 0;

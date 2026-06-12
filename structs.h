@@ -57,16 +57,6 @@
     }typ_ulaR;
 
     typedef struct {
-        int pc;
-        typ_reg banco_reg;
-        typ_mdd mem_dados;
-        typ_if_id IF_ID;
-        typ_id_ex ID_EX;
-        typ_ex_mem EX_MEM;
-        typ_mem_wb MEM_WB;
-    }print;
-    
-    typedef struct {
         uint8_t pc;
         typ_ins instrucao;
         bool valido;
@@ -111,6 +101,17 @@
         bool valido;
         typ_ins instrucao;
     } typ_mem_wb;
+
+    typedef struct {
+        int pc;
+        typ_reg banco_reg;
+        typ_mdd mem_dados;
+        typ_if_id IF_ID;
+        typ_id_ex ID_EX;
+        typ_ex_mem EX_MEM;
+        typ_mem_wb MEM_WB;
+    }print;
+    
 
 
     

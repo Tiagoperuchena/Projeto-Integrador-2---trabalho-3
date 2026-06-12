@@ -27,8 +27,8 @@ void estagio_WB(typ_stt *estado)
         }
     }
 
-    // Verifica se deve escrever em registrador
-    if (estado->MEM_WB.sinal[esc_reg])
+    // Verifica se deve escrever no registrador
+    if (estado->MEM_WB.sinal[esc_reg] && estado->MEM_WB.valido)
     {
         // MUX MemToReg
         if (estado->MEM_WB.sinal[mem_reg])
