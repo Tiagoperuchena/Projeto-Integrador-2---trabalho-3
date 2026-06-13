@@ -17,6 +17,7 @@ void estagio_WB(typ_stt *estado)
         typ_ins ins = estado->MEM_WB.instrucao;
         if (ins.instrucao_bruta == 0) {
             estado->nop_instrucoes++;
+            estado->r_instrucoes++; 
         } else {
             switch (ins.tipo) {
                 case r: estado->r_instrucoes++; break;

@@ -150,9 +150,9 @@ static void desenha_status(int y, int x, const typ_stt *st, int n_ins) {
     cor(C_DEFAULT, 0);
     mvprintw(y+1, x, "PC         %4d",    st->pc);
     mvprintw(y+2, x, "Ciclos     %4d",    st->total_ciclos);
-    mvprintw(y+3, x, "WB    %4d",    st->total_instrucoes);
+    mvprintw(y+3, x, "Concluidas %4d",    st->total_instrucoes);
     mvprintw(y+4, x, "CPI        %4.2f",  cpi);
-    mvprintw(y+5, x, "Prog. tam %4d",    n_ins);
+    mvprintw(y+5, x, "Prog. tam  %4d",    n_ins);
 
     hline_at(y+6, x, 16);
 
