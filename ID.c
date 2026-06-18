@@ -22,7 +22,11 @@ void estagio_ID(typ_stt *estado)
 
     control(estado, estado->IF_ID.pc);
 
-    memcpy(estado->ID_EX.sinal, estado->sinal, sizeof(bool) * 8);
+    if (!(estado->sinal[jump])) // mudar dps se a unidade de detecção de hazard for adicionada
+        memcpy(estado->ID_EX.sinal, estado->sinal, sizeof(bool) * 8);
+    else 
+        memcpy(estado->ID_EX.sinal, 0, sizeof(bool) * 8);
+
     estado->ID_EX.instrucao = ins;
     estado->ID_EX.valido = true;
     estado->ID_EX.ulaop = estado->ulaop;
