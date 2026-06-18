@@ -8,14 +8,13 @@ void estagio_IF(typ_stt *estado)
         return;
     }
 
-    // Busca instrução da memória de instruções
+    //busca na mem instrucoes
     estado->IF_ID.instrucao =
         estado->instrucao_t[estado->pc];
 
-    // Guarda o PC atual
     estado->IF_ID.pc = estado->pc;
     estado->IF_ID.valido = true;
 
-    // Próxima instrução
+    // prox pc
     estado->pc++;
 }

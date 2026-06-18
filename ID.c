@@ -7,6 +7,12 @@ void estagio_ID(typ_stt *estado)
 {
     if (estado == NULL) return;
 
+    if(!estado->IF_ID.valido){
+        estado->ID_EX.valido = false;
+        return;
+
+    }
+
     //pega instrucao do if_id
     typ_ins ins = estado->IF_ID.instrucao;
 
@@ -14,9 +20,11 @@ void estagio_ID(typ_stt *estado)
     memcpy(sinais_backup, estado->sinal, sizeof(bool) * 8);
     typ_ulaOp ulaop_backup = estado->ulaop;
 
-    controlador(estado, estado->IF_ID.pc);
+    control(estado, estado->IF_ID.pc);
 
     memcpy(estado->ID_EX.sinal, estado->sinal, sizeof(bool) * 8);
+    estado->ID_EX.instrucao = ins;
+    estado->ID_EX.valido = true;
     estado->ID_EX.ulaop = estado->ulaop;
     estado->ID_EX.pc = estado->IF_ID.pc;
     
