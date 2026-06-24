@@ -1,6 +1,6 @@
 # Simulador de Arquitetura / Pipeline
 
-Este é um simulador do Mini Mips 8 bits - Pipeline desenvolvido em C[cite: 1].
+Este é um simulador do Mini Mips 8 bits - Pipeline desenvolvido em C
 
 ---
 
@@ -8,10 +8,10 @@ Este é um simulador do Mini Mips 8 bits - Pipeline desenvolvido em C[cite: 1].
 
 A organização dos arquivos segue a estrutura a seguir:
 
-*   **`build/`**: armazena os arquivos executáveis gerados após a compilação[cite: 1].
+*   **`build/`**: armazena os arquivos executáveis gerados após a compilação
 *   **`include/`**: arquivos de cabeçalho (`.h`), como definições de funções e estruturas.
 *   **`mem/`**: aos arquivos de carga de memória e programas (ex: `.mem`) para execução no simulador.
-*   **`src/`**: contem os arquivos .c [cite: 1].
+*   **`src/`**: contem os arquivos .c 
 
 ---
 
@@ -19,7 +19,7 @@ A organização dos arquivos segue a estrutura a seguir:
 
 Necessario:
 *   Compilador `gcc`[cite: 1]
-*   Biblioteca `ncurses` (necessária para a interface do simulador)[cite: 1]
+*   Biblioteca `ncurses` (necessária para a interface do simulador)
 
 ## Para compilar
 
