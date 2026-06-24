@@ -1,4 +1,4 @@
-# Simulador de Arquitetura / Pipeline
+# Simulador Mini Mips 8 bits / Pipeline
 
 Este é um simulador do Mini Mips 8 bits - Pipeline desenvolvido em C
 
