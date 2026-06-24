@@ -6,11 +6,20 @@
 
 int carregar_memoria_instrucoes(const char *nome_arquivo, typ_instrucaoSep **mem_out)
 {
-    FILE *Mem_ins = fopen(nome_arquivo, "r");
+
+    char caminho_completo[256];
+    
+    
+    snprintf(caminho_completo, sizeof(caminho_completo), "mem/%s", nome_arquivo);
+
+   
+    FILE *Mem_ins = fopen(caminho_completo, "r");
     if (Mem_ins == NULL) {
+        printf("Erro: Nao foi possivel abrir o arquivo %s\n", caminho_completo);
         return 0;
     }
 
+    // Usar calloc já zera toda a memória. Não precisa de memset depois!
     typ_instrucaoSep *mem = (typ_instrucaoSep *) calloc(256 , sizeof(typ_instrucaoSep));
     if (mem == NULL) {
         fclose(Mem_ins);
