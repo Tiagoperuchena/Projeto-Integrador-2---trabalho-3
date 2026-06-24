@@ -17,32 +17,39 @@
 #define C_WARN      9
 #define C_KEY       10
 #define C_PREG      11   
+#define C_SEL       12  
 
-#define STAGE_W     24   
 #define STAGE_H     16   
-#define PREG_W      28
-#define PREG_H      STAGE_H
 #define STAGE_TOP    2   
-#define SW  (STAGE_W + 2)
-#define PW  (PREG_W  + 2)
 
-static int stage_x(int s) { return s * (SW + PW); }
-static int preg_x (int p) { return SW + p * (SW + PW); }
+
+static int g_stage_w = 24;
+static int g_preg_w  = 28;
+
+static int stage_x(int s) {
+    int sw = g_stage_w + 2, pw = g_preg_w + 2;
+    return s * (sw + pw);
+}
+static int preg_x(int p) {
+    int sw = g_stage_w + 2, pw = g_preg_w + 2;
+    return sw + p * (sw + pw);
+}
 
 static void inicia_cores(void) {
     start_color();
-    use_default_colors();
-    init_pair(C_DEFAULT, COLOR_WHITE,   -1);
-    init_pair(C_HEADER,  COLOR_CYAN,    -1);
-    init_pair(C_STAGE,   COLOR_YELLOW,  -1);
-    init_pair(C_ACTIVE,  COLOR_GREEN,   -1);
-    init_pair(C_NOP,     COLOR_WHITE,   -1);
-    init_pair(C_SIGNAL,  COLOR_BLUE,    -1);
-    init_pair(C_REG,     COLOR_GREEN,   -1);
-    init_pair(C_BAR,     COLOR_WHITE,   -1);
-    init_pair(C_WARN,    COLOR_RED,     -1);
-    init_pair(C_KEY,     COLOR_CYAN,    -1);
-    init_pair(C_PREG,    COLOR_MAGENTA, -1);
+    assume_default_colors(COLOR_WHITE, COLOR_BLACK);
+    init_pair(C_DEFAULT, COLOR_WHITE,   COLOR_BLACK);
+    init_pair(C_HEADER,  COLOR_CYAN,    COLOR_BLACK);
+    init_pair(C_STAGE,   COLOR_YELLOW,  COLOR_BLACK);
+    init_pair(C_ACTIVE,  COLOR_GREEN,   COLOR_BLACK);
+    init_pair(C_NOP,     COLOR_WHITE,   COLOR_BLACK);
+    init_pair(C_SIGNAL,  COLOR_BLUE,    COLOR_BLACK);
+    init_pair(C_REG,     COLOR_GREEN,   COLOR_BLACK);
+    init_pair(C_BAR,     COLOR_WHITE,   COLOR_BLACK);
+    init_pair(C_WARN,    COLOR_RED,     COLOR_BLACK);
+    init_pair(C_KEY,     COLOR_CYAN,    COLOR_BLACK);
+    init_pair(C_PREG,    COLOR_RED,     COLOR_BLACK);
+    init_pair(C_SEL,     COLOR_BLACK,   COLOR_WHITE);
 }
 
 static void cor  (int p, int a) { attron (COLOR_PAIR(p) | a); }
@@ -75,6 +82,22 @@ static void htee_at(int pair, int attr, int y, int x, int w) {
     descor(pair, attr);
 }
 
+static int getmax(const int *arr, int n) {
+    if (!arr || n <= 0) return 0;
+    int mx = arr[0];
+    for (int i = 1; i < n; i++)
+        if (arr[i] > mx) mx = arr[i];
+    return mx;
+}
+
+static int getmax8(const int8_t *arr, int n) {
+    if (!arr || n <= 0) return 0;
+    int mx = (int)arr[0];
+    for (int i = 1; i < n; i++)
+        if ((int)arr[i] > mx) mx = (int)arr[i];
+    return mx;
+}
+
 static void ins_asm(char *out, const typ_ins *ins) {
     if (!ins || ins->instrucao_bruta == 0) { 
         strncpy(out, "NOP", 27);
@@ -104,7 +127,7 @@ static void desenha_estagio(int y, int x,
                              const typ_ins *ins, bool valido,
                              const bool sinais[8], const bool mascara[8])
 {
-    int w = SW;
+    int w = g_stage_w + 2;
     int cpair = valido ? C_ACTIVE : C_NOP;
     int abold  = valido ? A_BOLD  : A_DIM;
 
@@ -130,16 +153,16 @@ static void desenha_estagio(int y, int x,
     htee_at(C_BAR, A_DIM, y+4, x, w);
 
     if (sinais && valido && ins && ins->instrucao_bruta != 0) {
-        /* linha 1 */
+        
         move(y+5, x+2); sinal_cell(sinais[esc_reg], mascara[esc_reg], "RgW");
         printw(" "); sinal_cell(sinais[mem_reg], mascara[mem_reg], "MmR");
-        /* linha 2 */
+       
         move(y+6, x+2); sinal_cell(sinais[esc_mem], mascara[esc_mem], "MmW");
         printw(" "); sinal_cell(sinais[branch],  mascara[branch],  "Brc");
-        /* linha 3 */
+      
         move(y+7, x+2); sinal_cell(sinais[jump],    mascara[jump],    "Jmp");
         printw(" "); sinal_cell(sinais[ula_fon], mascara[ula_fon], "Src");
-        /* linha 4 */
+      
         move(y+8, x+2); sinal_cell(sinais[reg_des], mascara[reg_des], "RgD");
     } else {
         cor(C_NOP, A_DIM);
@@ -155,7 +178,7 @@ static void desenha_estagio(int y, int x,
 
 static void desenha_preg(int y, int x, int reg_id, const typ_stt *st)
 {
-    int w = PW;
+    int w = g_preg_w + 2;
     bool valido = false;
 
     const char *nomes[] = { "IF/ID", "ID/EX", "EX/MEM", "MEM/WB" };
@@ -170,7 +193,7 @@ static void desenha_preg(int y, int x, int reg_id, const typ_stt *st)
     int cpair = valido ? C_PREG  : C_NOP;
     int abold  = valido ? A_BOLD  : A_DIM;
 
-    box_col(cpair, abold, y, x, PREG_H, w);
+    box_col(cpair, abold, y, x, STAGE_H, w);
 
     int tlen = strlen(nomes[reg_id]);
     int tx   = x + (w - tlen) / 2;
@@ -182,7 +205,7 @@ static void desenha_preg(int y, int x, int reg_id, const typ_stt *st)
 
     if (!valido) {
         cor(C_NOP, A_DIM);
-        for (int r = 3; r < PREG_H-1; r++)
+        for (int r = 3; r < STAGE_H-1; r++)
             mvprintw(y+r, x+1, "%-*s", w-2, "");
         descor(C_NOP, A_DIM);
         return;
@@ -209,12 +232,12 @@ static void desenha_preg(int y, int x, int reg_id, const typ_stt *st)
             typ_ins ins = st->ID_EX.instrucao;
             char asm_buf[28]; ins_asm(asm_buf, &ins); asm_buf[w-3]='\0';
             PROW("%s", asm_buf);
-            // Valor A com indicação de forwarding
+            
             const char *fwd_a = "";
             if (st->ID_EX.fwd_a == 1) fwd_a = "[Fwd:EX]";
             else if (st->ID_EX.fwd_a == 2) fwd_a = "[Fwd:WB]";
             PROW("A($r%d)=%d %s", ins.rs, st->ID_EX.valor_a, fwd_a);
-            // Valor B com indicação de forwarding
+           
             const char *fwd_b = "";
             if (st->ID_EX.fwd_b == 1) fwd_b = "[Fwd:EX]";
             else if (st->ID_EX.fwd_b == 2) fwd_b = "[Fwd:WB]";
@@ -263,46 +286,86 @@ static void desenha_status(int y, int x, const typ_stt *st, int n_ins) {
     float cpi = st->total_instrucoes > 0
                 ? (float)st->total_ciclos / st->total_instrucoes : 0.f;
 
+
     cor(C_HEADER, A_BOLD | A_UNDERLINE);
     mvprintw(y, x, " METRICAS ");
     descor(C_HEADER, A_BOLD | A_UNDERLINE);
 
+    const int R = 14;          
+
+    cor(C_WARN, A_BOLD);                         
+    mvprintw(y+1, x,   "PC  %4d", st->pc < 256 ? st->pc : 0);
+    descor(C_WARN, A_BOLD);
+
+    cor(C_ACTIVE, A_BOLD);                         
+    mvprintw(y+2, x,   "Cic %4d", st->total_ciclos);
+    descor(C_ACTIVE, A_BOLD);
+
     cor(C_DEFAULT, 0);
-    mvprintw(y+1,  x, "PC       %4d",   st->pc < 256 ? st->pc : 0);
-    mvprintw(y+2,  x, "Ciclos   %4d",   st->total_ciclos);
-    mvprintw(y+3,  x, "Concl.   %4d",   st->total_instrucoes);
-    mvprintw(y+4,  x, "CPI      %4.2f", cpi);
-    mvprintw(y+5,  x, "Prog.tam %4d",   n_ins > 0 ? n_ins : 0);
-    hline_at(y+6, x, 15);
-    mvprintw(y+7,  x, "R-type   %4d",   st->r_instrucoes);
-    mvprintw(y+8,  x, "I-type   %4d",   st->i_instrucoes);
-    mvprintw(y+9,  x, "J-type   %4d",   st->j_instrucoes);
-    mvprintw(y+10, x, "NOP  %4d",   st->nop_instrucoes);
-    mvprintw(y+11, x, "Bolhas   %4d",   st->total_bolhas);
-    mvprintw(y+12, x, "Fwd      %4d",   st->total_forwardings); 
+    mvprintw(y+3, x,   "Cnc %4d", st->total_instrucoes);
+
+    cor(C_ACTIVE, A_BOLD);                         
+    mvprintw(y+4, x,   "CPI %4.2f", cpi);
+    descor(C_ACTIVE, A_BOLD);
+
+    cor(C_DEFAULT, 0);
+    mvprintw(y+5, x,   "Tam %4d", n_ins > 0 ? n_ins : 0);
+
+   
+    hline_at(y+6, x, 28);
+
     
+    mvprintw(y+7,  x,   "R %4d", st->r_instrucoes);
+    mvprintw(y+8,  x,   "I %4d", st->i_instrucoes);
+    mvprintw(y+9,  x,   "J %4d", st->j_instrucoes);
+
+    
+    mvprintw(y+7,  x+R, "NOP %4d", st->nop_instrucoes);
+    mvprintw(y+8,  x+R, "Bub %4d", st->total_bolhas);
+    mvprintw(y+9,  x+R, "Fwd %4d", st->total_forwardings);
+
     descor(C_DEFAULT, 0);
 }
 
 static void desenha_registradores(int y, int x, const BancoRegistradores *b) {
+    
+    const int CW = 18;   
+    const int GAP = 2;  
+
     cor(C_HEADER, A_BOLD | A_UNDERLINE);
     mvprintw(y, x, " REGISTRADORES ");
     descor(C_HEADER, A_BOLD | A_UNDERLINE);
 
-    for (int i = 0; i < 8; i++) {
-        int v = b->$[i]; 
-        cor(v ? C_REG : C_NOP, v ? A_BOLD : A_DIM);
-        mvprintw(y+1+i, x, "$r%d %6d (0x%02X)", i, v, (unsigned char)v);
-        descor(v ? C_REG : C_NOP, v ? A_BOLD : A_DIM);
+   
+    for (int i = 0; i < 4; i++) {
+     
+        int vl = b->$[i];
+        cor(vl ? C_REG : C_NOP, vl ? A_BOLD : A_DIM);
+        mvprintw(y+1+i, x,           "$r%d %6d (0x%02X)", i,   vl, (unsigned char)vl);
+        descor(vl ? C_REG : C_NOP, vl ? A_BOLD : A_DIM);
+
+        
+        int vr = b->$[i+4];
+        cor(vr ? C_REG : C_NOP, vr ? A_BOLD : A_DIM);
+        mvprintw(y+1+i, x + CW + GAP, "$r%d %6d (0x%02X)", i+4, vr, (unsigned char)vr);
+        descor(vr ? C_REG : C_NOP, vr ? A_BOLD : A_DIM);
     }
+
+
+    int mx = getmax8(b->$, (int)(sizeof(b->$) / sizeof(b->$[0])));
+    cor(C_DEFAULT, A_DIM);
+    mvprintw(y+5, x, "MaxReg %4d", mx);
+    descor(C_DEFAULT, A_DIM);
 }
 
-static void desenha_menu(int y, int x) {
+#define N_CMDS 6
+
+static void desenha_menu(int y, int x, int sel) {
     cor(C_HEADER, A_BOLD | A_UNDERLINE);
     mvprintw(y, x, " COMANDOS ");
     descor(C_HEADER, A_BOLD | A_UNDERLINE);
 
-    struct { const char *k; const char *d; } cmds[] = {
+    struct { const char *k; const char *d; } cmds[N_CMDS] = {
         { "[1]",     "Carregar .mem"   },
         { "[2]",     "Ver memorias"    },
         { "[SPACE]", "Avancar ciclo"   },
@@ -310,11 +373,30 @@ static void desenha_menu(int y, int x) {
         { "[0]",     "Reset"           },
         { "[q]",     "Sair"            },
     };
-    int n = (int)(sizeof(cmds)/sizeof(cmds[0]));
-    for (int i = 0; i < n; i++) {
-        cor(C_KEY, A_BOLD);  mvprintw(y+1+i, x, "%-8s", cmds[i].k); descor(C_KEY, A_BOLD);
-        cor(C_DEFAULT, 0);   printw(" %s", cmds[i].d);               descor(C_DEFAULT, 0);
+
+    for (int i = 0; i < N_CMDS; i++) {
+        bool ativo = (i == sel);
+        char linha[24];
+        snprintf(linha, sizeof(linha), "%-8s %s", cmds[i].k, cmds[i].d);
+
+        if (ativo) {
+            attron(COLOR_PAIR(C_SEL) | A_BOLD);
+            mvprintw(y+1+i, x, " %-21s", linha);
+            attroff(COLOR_PAIR(C_SEL) | A_BOLD);
+        } else {
+            cor(C_KEY, A_BOLD);
+            mvprintw(y+1+i, x, " %-8s", cmds[i].k);
+            descor(C_KEY, A_BOLD);
+            cor(C_DEFAULT, 0);
+            printw(" %s", cmds[i].d);
+            descor(C_DEFAULT, 0);
+        }
     }
+
+    
+    cor(C_NOP, A_DIM);
+    mvprintw(y + 1 + N_CMDS + 1, x, "[Up][Dn] mover  [Enter] exec");
+    descor(C_NOP, A_DIM);
 }
 
 static void desenha_legenda(int y, int x) {
@@ -333,18 +415,36 @@ static void desenha_legenda(int y, int x) {
     descor(C_SIGNAL, A_DIM);
 }
 
-static void atualiza_tela(const typ_stt *st, int n_ins) {
+static void atualiza_tela(const typ_stt *st, int n_ins, int sel) {
+    int rows, cols;
+    getmaxyx(stdscr, rows, cols);   
+
+
+    {
+       
+        int avail = cols - 2;
+ 
+        int sw = (avail - 34) / 9;
+        if (sw < 20) sw = 20;   
+        if (sw > 36) sw = 36;   
+        g_stage_w = sw;
+        g_preg_w  = sw + 4;
+    }
+
     clear();
+    bkgd(COLOR_PAIR(C_DEFAULT));
 
-    cor(C_HEADER, A_BOLD);
-    mvprintw(0, 0, " Mini MIPS - Pipeline ");
-    descor(C_HEADER, A_BOLD);
-    cor(C_DEFAULT, A_DIM);
-    mvprintw(0, 24, "(UNIPAMPA)");
-    descor(C_DEFAULT, A_DIM);
-    hline_at(1, 0, COLS);
+    {
+        const char *titulo = "Mini MIPS - Pipeline  (UNIPAMPA)";
+        int tlen = (int)strlen(titulo);
+        int tx   = (cols - tlen) / 2;
+        if (tx < 0) tx = 0;
+        cor(C_HEADER, A_BOLD);
+        mvprintw(0, tx, "%s", titulo);
+        descor(C_HEADER, A_BOLD);
+    }
+    hline_at(1, 0, cols);
 
-                               
     static const bool mask_IF [8] = {0,0,0,0,0,0,0,0};
     static const bool mask_ID [8] = {0,0,0,0,0,0,0,0};
     static const bool mask_EX [8] = {1,1,1,1,1,0,1,1};
@@ -391,86 +491,258 @@ static void atualiza_tela(const typ_stt *st, int n_ins) {
 
         if (s < 4) {
             int px = preg_x(s);
-            const char *rn[] = {"IF/ID","ID/EX","EX/MEM","MEM/WB"};
-            /* já desenhado dentro de desenha_preg */
-            desenha_preg(STAGE_TOP + 1, px, s, st);
+            (void)px;   
+            desenha_preg(STAGE_TOP + 1, preg_x(s), s, st);
         }
     }
 
-    int bot = STAGE_TOP + 1 + STAGE_H + 1;  /* linha logo após os blocos */
-    hline_at(bot, 0, COLS);
+    int bot = STAGE_TOP + 1 + STAGE_H + 1;  
+    hline_at(bot, 0, cols);
 
-    desenha_registradores(bot + 1,  0,  st->registradores);
-    desenha_status       (bot + 1,  26, st, n_ins);
-    desenha_menu         (bot + 1,  44);
-    desenha_legenda      (bot + 1,  68);
 
-    hline_at(LINES - 2, 0, COLS);
+    {
+       
+        const int W_REG  = 40;
+        const int W_MET  = 30;
+        const int W_MENU = 27;
+        const int W_LEG  = 16;
+
+        
+        int total_fixo = W_REG + W_MET + W_MENU + W_LEG;
+        int sobra = cols - total_fixo;
+        int gap = (sobra > 0) ? sobra / 3 : 0;
+        if (gap > 6) gap = 6;  
+
+        int col_reg  = 0;
+        int col_met  = col_reg  + W_REG  + gap;
+        int col_menu = col_met  + W_MET  + gap;
+        int col_leg  = col_menu + W_MENU + gap;
+
+        int bot_y = bot + 1;
+
+        desenha_registradores(bot_y, col_reg, st->registradores);
+
+        if (col_met + W_MET <= cols)
+            desenha_status(bot_y, col_met, st, n_ins);
+
+        if (col_menu + W_MENU <= cols)
+            desenha_menu(bot_y, col_menu, sel);
+
+        if (col_leg + W_LEG <= cols)
+            desenha_legenda(bot_y, col_leg);
+    }
+
+    hline_at(rows - 2, 0, cols);
     cor(C_DEFAULT, 0);
-    mvprintw(LINES - 1, 0, "Insira: ");
+    mvprintw(rows - 1, 0, "Insira: ");
     descor(C_DEFAULT, 0);
 
     refresh();
 }
 
 
+static void pad_hline(WINDOW *pad, int row, int w, chtype l, chtype m, chtype r) {
+    mvwaddch(pad, row, 0, l);
+    mvwhline(pad, row, 1, m, w - 2);
+    mvwaddch(pad, row, w - 1, r);
+}
+
+static void pad_titulo(WINDOW *pad, int row, int w, int pair, const char *txt) {
+    wattron(pad, COLOR_PAIR(pair) | A_BOLD);
+    pad_hline(pad, row, w, ACS_VLINE, ' ', ACS_VLINE);
+    int tlen = (int)strlen(txt);
+    int tx   = (w - tlen) / 2;
+    if (tx < 1) tx = 1;
+    mvwprintw(pad, row, tx, "%s", txt);
+    wattroff(pad, COLOR_PAIR(pair) | A_BOLD);
+}
+
 static void imprime_memorias(const typ_stt *st, int n_ins) {
-    def_prog_mode();
-    
-    endwin();
+    int scr_rows, scr_cols;
+    getmaxyx(stdscr, scr_rows, scr_cols);
 
-    
-    if (st->instrucao_t == NULL || n_ins == 0) {
-        printf("\r\n\r\n============================================================\r\n");
-        printf("                  MEMORIA DE INSTRUCOES\r\n");
-        printf("============================================================\r\n");
-        printf("               NENHUMA INSTRUCAO CARREGADA!\r\n");
-        printf("============================================================\r\n");
-    } else {
-      
-        printf("\r\n\r\n============================================================\r\n");
-        printf("                  MEMORIA DE INSTRUCOES\r\n");
-        printf("============================================================\r\n");
-        for (int i = 0; i < n_ins; i++) {
-            char ab[30]; 
-            ins_asm(ab, &st->instrucao_t[i]);
-            ab[29] = '\0';
-            printf("[%03d]  %-16s  %-28s\r\n", i, st->instrucao_t[i].total, ab);
-        }
+    int marg_y = 1, marg_x = 2;
+    int win_h = scr_rows - marg_y * 2;
+    int win_w = scr_cols - marg_x * 2;
+    if (win_h < 7)  win_h = 7;
+    if (win_w < 42) win_w = 42;
+    int cont_h = win_h - 2;
+    int cont_w = win_w - 2;
+
+    int n_dados_linhas = (st->mem_dados != NULL) ? (256 / 8) : 1;
+    int n_ins_linhas   = (st->instrucao_t != NULL && n_ins > 0) ? (n_ins + 1) : 1;
+    int tot = 3 + n_ins_linhas + 3 + n_dados_linhas + 1;
+
+    WINDOW *win = newwin(win_h, win_w, marg_y, marg_x);
+    WINDOW *pad = newpad(tot + 2, cont_w);
+    if (!win || !pad) {
+        if (win) delwin(win);
+        if (pad) delwin(pad);
+        return;
     }
-
-    printf("\r\n\r\n============================================================\r\n");
-    printf("                     MEMORIA DE DADOS\r\n");
-    printf("============================================================\r\n");
-    
-    if (st->mem_dados == NULL) {
-        printf("               MEMORIA DE DADOS NAO INICIALIZADA!\r\n");
-    } else {
-        for (int i = 0; i < 256; i += 4) {
-            printf("[%03d]:%-5d [%03d]:%-5d [%03d]:%-5d [%03d]:%-5d\r\n",
-                   i,   st->mem_dados->dados[i],
-                   i+1, st->mem_dados->dados[i+1],
-                   i+2, st->mem_dados->dados[i+2],
-                   i+3, st->mem_dados->dados[i+3]);
-        }
-    }
-    printf("============================================================\r\n");
-
-    
-    printf("\r\n>>> Pressione ENTER para voltar ao simulador...\r\n");
-    fflush(stdout);
-    
-    
-    system("stty sane");
-    
-    
-    char buffer[10];
-    fgets(buffer, sizeof(buffer), stdin);
+    keypad(win, TRUE);
 
    
-    reset_prog_mode();
+    int row = 0;
+    int pw  = cont_w;   
+
+  
+    wattron(pad, COLOR_PAIR(C_BAR) | A_DIM);
+    pad_hline(pad, row++, pw, ACS_ULCORNER, ACS_HLINE, ACS_URCORNER);
+    wattroff(pad, COLOR_PAIR(C_BAR) | A_DIM);
+
+    pad_titulo(pad, row++, pw, C_HEADER, "MEMORIA DE INSTRUCOES");
+
+    wattron(pad, COLOR_PAIR(C_BAR) | A_DIM);
+    pad_hline(pad, row++, pw, ACS_LTEE, ACS_HLINE, ACS_RTEE);
+    wattroff(pad, COLOR_PAIR(C_BAR) | A_DIM);
+
+    if (st->instrucao_t == NULL || n_ins == 0) {
+        wattron(pad, COLOR_PAIR(C_WARN) | A_BOLD);
+        mvwprintw(pad, row++, 2, "NENHUMA INSTRUCAO CARREGADA");
+        wattroff(pad, COLOR_PAIR(C_WARN) | A_BOLD);
+    } else {
+      
+        int *vals = (int *)malloc(n_ins * sizeof(int));
+        if (vals) {
+            for (int i = 0; i < n_ins; i++)
+                vals[i] = (int)st->instrucao_t[i].instrucao_bruta;
+            int mx = getmax(vals, n_ins);
+            free(vals);
+            wattron(pad, COLOR_PAIR(C_WARN) | A_BOLD);
+           
+            wattroff(pad, COLOR_PAIR(C_WARN) | A_BOLD);
+        }
+        for (int i = 0; i < n_ins; i++) {
+            char ab[30];
+            ins_asm(ab, &st->instrucao_t[i]);
+            ab[29] = '\0';
+            wattron(pad, COLOR_PAIR(C_DEFAULT));
+            mvwprintw(pad, row++, 2, "[%03d]  %-16s  %-28s",
+                      i, st->instrucao_t[i].total, ab);
+            wattroff(pad, COLOR_PAIR(C_DEFAULT));
+        }
+    }
+
+    wattron(pad, COLOR_PAIR(C_BAR) | A_DIM);
+    pad_hline(pad, row++, pw, ACS_LTEE, ACS_HLINE, ACS_RTEE);
+    wattroff(pad, COLOR_PAIR(C_BAR) | A_DIM);
+
+    pad_titulo(pad, row++, pw, C_HEADER, "MEMORIA DE DADOS");
+
+    wattron(pad, COLOR_PAIR(C_BAR) | A_DIM);
+    pad_hline(pad, row++, pw, ACS_LTEE, ACS_HLINE, ACS_RTEE);
+    wattroff(pad, COLOR_PAIR(C_BAR) | A_DIM);
+
+    if (st->mem_dados == NULL) {
+        wattron(pad, COLOR_PAIR(C_WARN) | A_BOLD);
+        mvwprintw(pad, row++, 2, "MEMORIA DE DADOS NAO INICIALIZADA");
+        wattroff(pad, COLOR_PAIR(C_WARN) | A_BOLD);
+    } else {
+        int mx_dado = getmax8(st->mem_dados->dados, 256);
+        wattron(pad, COLOR_PAIR(C_WARN) | A_BOLD);
+       
+        wattroff(pad, COLOR_PAIR(C_WARN) | A_BOLD);
+        for (int i = 0; i < 256; i += 8) {
+            wattron(pad, COLOR_PAIR(C_DEFAULT));
+            mvwprintw(pad, row++, 2,
+                      "[%03d]:%-4d [%03d]:%-4d [%03d]:%-4d [%03d]:%-4d"
+                      " [%03d]:%-4d [%03d]:%-4d [%03d]:%-4d [%03d]:%-4d",
+                      i,   st->mem_dados->dados[i],
+                      i+1, st->mem_dados->dados[i+1],
+                      i+2, st->mem_dados->dados[i+2],
+                      i+3, st->mem_dados->dados[i+3],
+                      i+4, st->mem_dados->dados[i+4],
+                      i+5, st->mem_dados->dados[i+5],
+                      i+6, st->mem_dados->dados[i+6],
+                      i+7, st->mem_dados->dados[i+7]);
+            wattroff(pad, COLOR_PAIR(C_DEFAULT));
+        }
+    }
+
+    wattron(pad, COLOR_PAIR(C_BAR) | A_DIM);
+    pad_hline(pad, row++, pw, ACS_LLCORNER, ACS_HLINE, ACS_LRCORNER);
+    wattroff(pad, COLOR_PAIR(C_BAR) | A_DIM);
+
+    tot = row; 
+
+    int scroll = 0;
+    int max_scroll = tot - cont_h;
+    if (max_scroll < 0) max_scroll = 0;
+
     
-    
+    int pad_top  = marg_y + 1;           
+    int pad_left = marg_x + 1;           
+    int pad_bot  = pad_top + cont_h - 1; 
+    int pad_right= pad_left + cont_w - 1;
+
+    bool fechar = false;
+    while (!fechar) {
+        
+        int cur_rows, cur_cols;
+        getmaxyx(stdscr, cur_rows, cur_cols);
+        (void)cur_rows; (void)cur_cols;
+
+        int wh_now, ww_now;
+        getmaxyx(win, wh_now, ww_now);
+        int ch_now = wh_now - 2;  
+
+        wattron(win, COLOR_PAIR(C_BAR) | A_DIM);
+        box(win, 0, 0);
+        wattroff(win, COLOR_PAIR(C_BAR) | A_DIM);
+
+        wattron(win, COLOR_PAIR(C_STAGE) | A_BOLD);
+        mvwprintw(win, 0, 2, " VISUALIZADOR DE MEMORIAS ");
+        wattroff(win, COLOR_PAIR(C_STAGE) | A_BOLD);
+
+        
+        const char *nav = " [k/UP] [j/DN] [PgUp] [PgDn] [Home] [End] [q/ESC] ";
+        int nav_len = (int)strlen(nav);
+        int nav_x = (ww_now - nav_len) / 2;
+        if (nav_x < 1) nav_x = 1;
+        wattron(win, COLOR_PAIR(C_NOP) | A_DIM);
+        mvwprintw(win, wh_now - 1, nav_x, "%s", nav);
+        
+        mvwprintw(win, wh_now - 1, ww_now - 10, "[%3d/%3d]", scroll + 1, tot);
+        wattroff(win, COLOR_PAIR(C_NOP) | A_DIM);
+
+        wrefresh(win);
+
+        
+        int ms = tot - ch_now;
+        if (ms < 0) ms = 0;
+        if (scroll > ms) scroll = ms;
+
+        prefresh(pad, scroll, 0,
+                 pad_top, pad_left,
+                 pad_bot, pad_right);
+
+        int c = wgetch(win);
+        switch (c) {
+            case KEY_UP:   case 'k': case 'K':
+                if (scroll > 0) scroll--;
+                break;
+            case KEY_DOWN: case 'j': case 'J':
+                if (scroll < ms) scroll++;
+                break;
+            case KEY_PPAGE:
+                scroll -= ch_now - 1;
+                if (scroll < 0) scroll = 0;
+                break;
+            case KEY_NPAGE:
+                scroll += ch_now - 1;
+                if (scroll > ms) scroll = ms;
+                break;
+            case KEY_HOME: scroll = 0;   break;
+            case KEY_END:  scroll = ms;  break;
+            case 'q': case 'Q': case 27:
+                fechar = true;
+                break;
+        }
+    }
+
+    delwin(pad);
+    delwin(win);
     clear();
     refresh();
 }
@@ -496,54 +768,101 @@ int main(void) {
     int num_instrucoes = 0;
 
     initscr(); inicia_cores(); cbreak(); noecho(); keypad(stdscr, TRUE); curs_set(0);
+    bkgd(COLOR_PAIR(C_DEFAULT));   
 
-    int ch; bool sair = false;
+    int sel = 0;          
+    bool sair = false;
     while (!sair) {
-        atualiza_tela(&estado, num_instrucoes);
-        static int ultima_bolha = 0;
+        atualiza_tela(&estado, num_instrucoes, sel);
 
-    if (estado.total_bolhas > ultima_bolha) {
-        ultima_bolha = estado.total_bolhas;
-        mvprintw(LINES-1, 20, ">>> BOLHA INSERIDA! <<<");
-    } else {
-        mvprintw(LINES-1, 20, "                        ");  
-}
-        ch = getch();
+        int cur_rows, cur_cols;
+        getmaxyx(stdscr, cur_rows, cur_cols);
+        (void)cur_cols;
+
+        static int ultima_bolha = 0;
+        if (estado.total_bolhas > ultima_bolha) {
+            ultima_bolha = estado.total_bolhas;
+            mvprintw(cur_rows - 1, 20, ">>> BOLHA INSERIDA! <<<");
+        } else {
+            mvprintw(cur_rows - 1, 20, "                        ");
+        }
+        refresh();
+
+        int ch = getch();
         switch (ch) {
-            case '1': {
-                echo(); curs_set(1);
-                mvprintw(LINES-1, 0, "Arquivo .mem: "); clrtoeol();
-                char nome[64]; getnstr(nome, sizeof(nome)-1);
-                noecho(); curs_set(0);
-                if (memoria_instrucoes) free(memoria_instrucoes);
-                num_instrucoes = carregar_memoria_instrucoes(nome, &memoria_instrucoes);
-                estado.instrucao_t = (typ_ins *)memoria_instrucoes;
-                estado.pc = 0;
+            
+            case KEY_RESIZE:
+                endwin();
+                refresh();
+                bkgd(COLOR_PAIR(C_DEFAULT));
+                clear();
                 break;
+
+            
+            case KEY_UP:
+                sel = (sel - 1 + N_CMDS) % N_CMDS;
+                break;
+            case KEY_DOWN:
+                sel = (sel + 1) % N_CMDS;
+                break;
+
+            
+            case '\n': case KEY_ENTER: {
+                
+                switch (sel) {
+                    case 0: ch = '1'; break;
+                    case 1: ch = '2'; break;
+                    case 2: ch = ' '; break;
+                    case 3: ch = 'b'; break;
+                    case 4: ch = '0'; break;
+                    case 5: ch = 'q'; break;
+                }
+                
+                goto executa;
             }
-            case '2': imprime_memorias(&estado, num_instrucoes); break;
-            case '9': case ' ':
-                push_estagio(&estado);
-                executar(&estado, banco, false);
+
+           
+            default:
+            executa:
+                switch (ch) {
+                    case '1': {
+                        int r1, c1; getmaxyx(stdscr, r1, c1); (void)c1;
+                        echo(); curs_set(1);
+                        mvprintw(r1 - 1, 0, "Arquivo .mem: "); clrtoeol();
+                        char nome[64]; getnstr(nome, sizeof(nome)-1);
+                        noecho(); curs_set(0);
+                        if (memoria_instrucoes) free(memoria_instrucoes);
+                        num_instrucoes = carregar_memoria_instrucoes(nome, &memoria_instrucoes);
+                        estado.instrucao_t = (typ_ins *)memoria_instrucoes;
+                        estado.pc = 0;
+                        sel = 0;
+                        break;
+                    }
+                    case '2': imprime_memorias(&estado, num_instrucoes); break;
+                    case '9': case ' ':
+                        push_estagio(&estado);
+                        executar(&estado, banco, false);
+                        break;
+                    case 'b': case 'B':
+                        if (estado.topo_pilha > 0) pop_estagio(&estado);
+                        break;
+                    case '0':
+                        estado.pc = 0; estado.total_ciclos = 0; estado.total_instrucoes = 0;
+                        estado.r_instrucoes = 0; estado.i_instrucoes = 0;
+                        estado.j_instrucoes = 0; estado.nop_instrucoes = 0;
+                        estado.total_forwardings = 0;
+                        estado.total_bolhas = 0;
+                        inicia_registradores(&banco);
+                        memset(mem_dados.dados, 0, sizeof(mem_dados.dados));
+                        memset(&estado.IF_ID, 0, sizeof(estado.IF_ID));
+                        memset(&estado.ID_EX, 0, sizeof(estado.ID_EX));
+                        memset(&estado.EX_MEM, 0, sizeof(estado.EX_MEM));
+                        memset(&estado.MEM_WB, 0, sizeof(estado.MEM_WB));
+                        estado.topo_pilha = 0;
+                        break;
+                    case 'q': case 'Q': sair = true; break;
+                }
                 break;
-            case 'b': case 'B':
-                if (estado.topo_pilha > 0) pop_estagio(&estado);
-                break;
-            case '0':
-                estado.pc = 0; estado.total_ciclos = 0; estado.total_instrucoes = 0;
-                estado.r_instrucoes = 0; estado.i_instrucoes = 0;
-                estado.j_instrucoes = 0; estado.nop_instrucoes = 0;
-                estado.total_forwardings = 0;
-                estado.total_bolhas = 0;
-                inicia_registradores(&banco);
-                memset(mem_dados.dados, 0, sizeof(mem_dados.dados));
-                memset(&estado.IF_ID, 0, sizeof(estado.IF_ID));
-                memset(&estado.ID_EX, 0, sizeof(estado.ID_EX));
-                memset(&estado.EX_MEM, 0, sizeof(estado.EX_MEM));
-                memset(&estado.MEM_WB, 0, sizeof(estado.MEM_WB));
-                estado.topo_pilha = 0;
-                break;
-            case 'q': case 'Q': sair = true; break;
         }
     }
 
