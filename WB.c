@@ -32,7 +32,7 @@ void estagio_WB(typ_stt *estado)
     if (estado->MEM_WB.sinal[esc_reg] && estado->MEM_WB.valido)
     {
         // MUX MemToReg
-        if (estado->MEM_WB.sinal[mem_reg])
+        if (estado->MEM_WB.sinal[mem_reg]==0)
         {
             valor_escrita = estado->MEM_WB.saida_mem;
         }

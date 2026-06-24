@@ -14,14 +14,11 @@ typ_stt *control(typ_stt *stt, int n)
     stt->sinal[ula_fon] = 0;
 
     stt->sinal[esc_mem] = 0;
-    stt->sinal[branch]  = 0; // DVC  n sei pq mudou de nome
-    stt->sinal[jump]    = 0; // DVI  tbm n sei
+    stt->sinal[branch]  = 0; //dvc
+    stt->sinal[jump]    = 0; //dvi
     
-    stt->sinal[mem_reg] = 0;
+    stt->sinal[mem_reg] = 1; //R = 1
     stt->sinal[esc_reg] = 1;
-
-
-    
     break;
 
     case i: // Tipo I
@@ -37,7 +34,7 @@ typ_stt *control(typ_stt *stt, int n)
             stt->sinal[esc_mem] = 0;
             
             stt->sinal[esc_reg] = 0;
-            stt->sinal[mem_reg] = 0;
+            stt->sinal[mem_reg] = 1; // X na tabela
            
         break;
             
@@ -52,7 +49,7 @@ typ_stt *control(typ_stt *stt, int n)
             stt->sinal[esc_mem] = 0;
             
             stt->sinal[esc_reg] = 1;
-            stt->sinal[mem_reg] = 0;
+            stt->sinal[mem_reg] = 1; // Conforme tabela: ADDI = 1
         break;    
 
 
@@ -66,7 +63,7 @@ typ_stt *control(typ_stt *stt, int n)
             stt->sinal[jump]    = 0;
             
             stt->sinal[esc_reg] = 1;
-            stt->sinal[mem_reg] = 1;
+            stt->sinal[mem_reg] = 0; // Conforme tabela: LW = 0
         break;
 
 
@@ -80,7 +77,7 @@ typ_stt *control(typ_stt *stt, int n)
             stt->sinal[esc_mem] = 1;
         
             stt->sinal[esc_reg] = 0;
-            stt->sinal[mem_reg] = 0;
+            stt->sinal[mem_reg] = 1; // X na tabela
         break;
         
         default:
@@ -97,7 +94,8 @@ typ_stt *control(typ_stt *stt, int n)
         stt->sinal[esc_mem] = 0;
         
         stt->sinal[esc_reg] = 0;
-        stt->sinal[mem_reg] = 0;
+        stt->sinal[mem_reg] = 1; // X na tabela
+        break;
     default:
         break;
     }

@@ -8,6 +8,7 @@
         r = 1,
         i = 2,
         j = 3,
+        bolha = 4
 
     };
 
@@ -75,6 +76,8 @@
         uint16_t addr;
         bool valido;
         typ_ins instrucao;
+        int fwd_a;
+        int fwd_b; 
     } typ_id_ex;
     
     typedef struct {
@@ -110,6 +113,14 @@
         typ_id_ex ID_EX;
         typ_ex_mem EX_MEM;
         typ_mem_wb MEM_WB;
+        int total_instrucoes;
+        int total_ciclos;
+        int r_instrucoes;
+        int i_instrucoes;
+        int j_instrucoes;
+        int nop_instrucoes;
+        int total_bolhas;
+        int total_forwardings;
     }print;
     
 
@@ -139,6 +150,9 @@
         typ_ulaOp ulaop;
         typ_ulaR ular;
         bool estouro;
+        bool dect_stall;
+        int total_bolhas;
+        int total_forwardings;
 
         // Registradores de pipeline
         typ_if_id IF_ID;
